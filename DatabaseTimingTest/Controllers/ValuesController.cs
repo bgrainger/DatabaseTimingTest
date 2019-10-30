@@ -1,6 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
 using System.Web.Http;
-using Dapper;
 using MySql.Data.MySqlClient;
 
 namespace DatabaseTimingTest.Controllers
@@ -46,7 +45,10 @@ WHERE b.value != @sourceId;";
 					}
 				}
 
-				var query = @"select a.value, b.value, c.value, d.value, e.value, f.value, g.value
+				var items = new List<int>();
+				using (var cmd = connection.CreateCommand())
+				{
+					cmd.CommandText = @"select a.value, b.value, c.value, d.value, e.value, f.value, g.value
 	from new_relic_test a
 	inner join new_relic_test b
     inner join new_relic_test c
@@ -56,13 +58,16 @@ WHERE b.value != @sourceId;";
     inner join new_relic_test g
     where a.value + b.value + c.value + d.value + e.value + f.value + g.value = @accountId
     limit @limit;";
-
-				var items = connection.Query(query,
-					new
+					cmd.Parameters.AddWithValue("@accountId", 42);
+					cmd.Parameters.AddWithValue("@limit", 100_000);
+					using (var reader = cmd.ExecuteReader())
 					{
-						accountId = 42,
-						limit = 100_000,
-					}).ToList();
+						while (reader.Read())
+						{
+							items.Add(reader.GetInt32(0));
+						}
+					}
+				}
 
 				return "Test passed: " + items.Count + " items";
 			}
