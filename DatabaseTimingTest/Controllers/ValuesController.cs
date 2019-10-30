@@ -18,13 +18,11 @@ namespace DatabaseTimingTest.Controllers
 					cmd.CommandText = @"
 SELECT value
 FROM new_relic_test AS b
-WHERE b.value = @sourceId;";
-					cmd.Parameters.AddWithValue("@sourceId", 49605);
+WHERE b.value = 1;";
 					using (var reader = cmd.ExecuteReader())
 					{
 						while (reader.Read())
 						{
-							reader.GetInt32(0);
 						}
 					}
 				}
@@ -34,18 +32,16 @@ WHERE b.value = @sourceId;";
 					cmd.CommandText = @"
 SELECT value
 FROM new_relic_test AS b
-WHERE b.value != @sourceId;";
-					cmd.Parameters.AddWithValue("@sourceId", 49605);
+WHERE b.value != 1;";
 					using (var reader = cmd.ExecuteReader())
 					{
 						while (reader.Read())
 						{
-							reader.GetInt32(0);
 						}
 					}
 				}
 
-				var items = new List<int>();
+				int i = 0;
 				using (var cmd = connection.CreateCommand())
 				{
 					cmd.CommandText = @"select a.value, b.value, c.value, d.value, e.value, f.value, g.value
@@ -56,20 +52,17 @@ WHERE b.value != @sourceId;";
     inner join new_relic_test e
     inner join new_relic_test f
     inner join new_relic_test g
-    where a.value + b.value + c.value + d.value + e.value + f.value + g.value = @accountId
-    limit @limit;";
-					cmd.Parameters.AddWithValue("@accountId", 42);
-					cmd.Parameters.AddWithValue("@limit", 100_000);
+    where a.value + b.value + c.value + d.value + e.value + f.value + g.value = 42;";
 					using (var reader = cmd.ExecuteReader())
 					{
 						while (reader.Read())
 						{
-							items.Add(reader.GetInt32(0));
+							i++;
 						}
 					}
 				}
 
-				return "Test passed: " + items.Count + " items";
+				return "Test passed: " + i + " items";
 			}
 		}
 
