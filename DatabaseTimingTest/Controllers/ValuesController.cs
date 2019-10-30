@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
+﻿using System.Linq;
 using System.Web.Http;
 using Dapper;
 using MySql.Data.MySqlClient;
@@ -15,21 +14,37 @@ namespace DatabaseTimingTest.Controllers
 			{
 				connection.Open();
 
-				string queryBlocksBySource = $@"
+				using (var cmd = connection.CreateCommand())
+				{
+					cmd.CommandText = @"
 SELECT value
 FROM new_relic_test AS b
 WHERE b.value = @sourceId;";
+					cmd.Parameters.AddWithValue("@sourceId", 49605);
+					using (var reader = cmd.ExecuteReader())
+					{
+						while (reader.Read())
+						{
+							reader.GetInt32(0);
+						}
+					}
+				}
 
-				var blocksBySource = connection.Query<int>(queryBlocksBySource, new { sourceId = 49605 });
-
-				string queryReciprocalBlocksForSource = $@"
+				using (var cmd = connection.CreateCommand())
+				{
+					cmd.CommandText = @"
 SELECT value
 FROM new_relic_test AS b
 WHERE b.value != @sourceId;";
-
-				var reciprocalBlocksForSource = connection.Query<int>(queryReciprocalBlocksForSource, new { sourceId = 49605 });
-				ICollection<int> blockedUserIds = new HashSet<int>(blocksBySource
-					.Concat(reciprocalBlocksForSource));
+					cmd.Parameters.AddWithValue("@sourceId", 49605);
+					using (var reader = cmd.ExecuteReader())
+					{
+						while (reader.Read())
+						{
+							reader.GetInt32(0);
+						}
+					}
+				}
 
 				var query = @"select a.value, b.value, c.value, d.value, e.value, f.value, g.value
 	from new_relic_test a
